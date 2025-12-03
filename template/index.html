@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee List</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 90%;
+            margin: auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 10px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #d6f5d6;
+            cursor: pointer;
+        }
+
+        .container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Employee Details</h1>
+
+    <div class="container">
+        <table>
+            <tr>
+                <th>emp_id</th>
+                <th>emp_name</th>
+                <th>address</th>
+                <th>designation</th>
+                <th>dob</th>
+                <th>salary</th>
+            </tr>
+
+            {% for user in employee %}
+            <tr>
+                <td>{{ user.emp_id }}</td>
+                <td>{{ user.emp_name }}</td>
+                <td>{{ user.address }}</td>
+                <td>{{ user.designation }}</td>
+                <td>{{ user.dob }}</td>
+                <td>{{ user.salary }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</body>
+</html>
