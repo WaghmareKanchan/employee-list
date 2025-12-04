@@ -1,87 +1,224 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Employee List</title>
+    <title>Employee Management (All-in-One)</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f2f4f7;
-            margin: 0;
-            padding: 30px;
+            background: #f0f9f0;
+            padding: 20px;
         }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 25px;
-        }
+        h1 { text-align: center; }
 
         table {
-            width: 90%;
-            margin: auto;
+            width: 100%;
             border-collapse: collapse;
             background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
         }
-
         th {
-            background: #4CAF50;   /* Green Header */
+            background: #4CAF50;
             color: white;
-            padding: 12px 10px;
-            text-transform: uppercase;
+            padding: 10px;
         }
-
         td {
             padding: 10px;
             text-align: center;
             border-bottom: 1px solid #ddd;
         }
+        tr:nth-child(even) { background: #f9f9f9; }
 
-        tr:nth-child(even) {
-            background: #f9f9f9;   /* Light Gray Even Row */
-        }
-
-        tr:hover {
-            background-color: #d6f5d6;  /* Soft Green Hover */
+        button {
+            padding: 10px 15px;
+            background: #4CAF50;
+            border: none;
+            color: white;
+            border-radius: 5px;
             cursor: pointer;
         }
+        button:hover { background: #45a049; }
 
-        .container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
+        .box {
+            background: white;
+            padding: 15px;
+            margin: 20px auto;
+            width: 50%;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgb(0 0 0 / 20%);
+        }
+
+        input {
+            width: 95%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .hidden { display: none; }
+
+        /* small responsive tweak */
+        @media (max-width: 800px) {
+            .box { width: 95%; }
+            table { font-size: 14px; }
         }
     </style>
+
+    <script>
+        // Toggle Add form
+        function showAddForm() {
+            const el = document.getElementById("addForm");
+            el.classList.toggle("hidden");
+            // hide update/search when opening add
+            document.getElementById("updateForm").classList.add("hidden");
+            document.getElementById("searchForm").classList.add("hidden");
+        }
+
+        // Toggle Search form
+        function showSearchForm() {
+            const el = document.getElementById("searchForm");
+            el.classList.toggle("hidden");
+            // hide add/update when opening search
+            document.getElementById("addForm").classList.add("hidden");
+            document.getElementById("updateForm").classList.add("hidden");
+        }
+
+        // Show Update form and populate fields from an object
+        function showUpdate(emp) {
+            document.getElementById("updateForm").classList.remove("hidden");
+
+            // hide add/search
+            document.getElementById("addForm").classList.add("hidden");
+            document.getElementById("searchForm").classList.add("hidden");
+
+            document.getElementById("u_id").value = emp.emp_id || "";
+            document.getElementById("u_name").value = emp.emp_name || "";
+            document.getElementById("u_address").value = emp.address || "";
+            document.getElementById("u_designation").value = emp.designation || "";
+            // make sure dob is properly formatted (YYYY-MM-DD) — MySQL DATE will generally already be fine
+            document.getElementById("u_dob").value = emp.dob ? emp.dob.split(" ")[0] : "";
+            document.getElementById("u_salary").value = emp.salary || "";
+            // scroll to update form for better UX
+            document.getElementById("updateForm").scrollIntoView({behavior: "smooth"});
+        }
+
+        // Helper to parse dataset JSON safely when button clicked (used in inline data-emp)
+        function handleEditClick(btn) {
+            try {
+                const obj = JSON.parse(btn.dataset.emp);
+                showUpdate(obj);
+            } catch (e) {
+                console.error("Failed to parse employee data:", e);
+                alert("Failed to open edit form. See console for details.");
+            }
+        }
+    </script>
+
 </head>
 
 <body>
 
-    <h1>Employee Details</h1>
+<h1>Employee Management System</h1>
 
-    <div class="container">
-        <table>
-            <tr>
-                <th>emp_id</th>
-                <th>emp_name</th>
-                <th>address</th>
-                <th>designation</th>
-                <th>dob</th>
-                <th>salary</th>
-            </tr>
+<!-- BUTTONS -->
+<div style="text-align:center; margin-bottom: 10px;">
+    <button onclick="showAddForm()">Add Employee</button>
+    <button onclick="showSearchForm()">Search Employee</button>
+</div>
 
-            {% for user in employee %}
-            <tr>
-                <td>{{ user.emp_id }}</td>
-                <td>{{ user.emp_name }}</td>
-                <td>{{ user.address }}</td>
-                <td>{{ user.designation }}</td>
-                <td>{{ user.dob }}</td>
-                <td>{{ user.salary }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
+<!-- ADD EMPLOYEE FORM -->
+<div id="addForm" class="box hidden">
+    <h3>Add Employee</h3>
+
+    <form method="POST">
+        <input type="hidden" name="action" value="add">
+
+        <input type="text" name="emp_id" placeholder="Employee Id" required>
+        <input type="text" name="emp_name" placeholder="Employee Name" required>
+        <input type="text" name="address" placeholder="Address" required>
+        <input type="text" name="designation" placeholder="Designation" required>
+        <input type="date" name="dob" required>
+        <input type="number" name="salary" placeholder="Salary" required>
+
+        <button type="submit">Save</button>
+    </form>
+</div>
+
+<!-- SEARCH FORM -->
+<div id="searchForm" class="box hidden">
+    <h3>Search Employee</h3>
+
+    <form method="POST">
+        <input type="hidden" name="action" value="search">
+
+        <input type="number" name="search_id" placeholder="Enter Employee ID" required>
+        <button type="submit">Search</button>
+    </form>
+</div>
+
+<!-- SEARCH RESULT -->
+{% if search_result %}
+<div class="box">
+    <h3>Employee Found</h3>
+
+    <p><b>Name:</b> {{ search_result.emp_name }}</p>
+    <p><b>Address:</b> {{ search_result.address }}</p>
+    <p><b>Designation:</b> {{ search_result.designation }}</p>
+
+    <!-- Use data-emp attribute with safe JSON, and call handler to avoid JS syntax errors -->
+    <button data-emp='{{ search_result | tojson | safe }}' onclick="handleEditClick(this)">Edit Employee</button>
+
+</div>
+{% endif %}
+
+<!-- UPDATE FORM -->
+<div id="updateForm" class="box hidden">
+    <h3>Update Employee</h3>
+
+    <form method="POST">
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="emp_id" id="u_id">
+
+        <input type="text" name="emp_name" id="u_name" required>
+        <input type="text" name="address" id="u_address" required>
+        <input type="text" name="designation" id="u_designation" required>
+        <input type="date" name="dob" id="u_dob" required>
+        <input type="number" name="salary" id="u_salary" required>
+
+        <button type="submit">Update</button>
+    </form>
+</div>
+
+
+<!-- EMPLOYEE TABLE -->
+<table>
+    <tr>
+        <th>emp_id</th>
+        <th>emp_name</th>
+        <th>address</th>
+        <th>designation</th>
+        <th>dob</th>
+        <th>salary</th>
+        <th>Edit</th>
+    </tr>
+
+    {% for row in employee %}
+    <tr>
+        <td>{{ row.emp_id }}</td>
+        <td>{{ row.emp_name }}</td>
+        <td>{{ row.address }}</td>
+        <td>{{ row.designation }}</td>
+        <td>{{ row.dob }}</td>
+        <td>{{ row.salary }}</td>
+        <td>
+            <!-- Use dataset to safely include JSON; handler will parse it -->
+            <button data-emp='{{ row | tojson | safe }}' onclick="handleEditClick(this)">
+                Edit
+            </button>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 
 </body>
 </html>
